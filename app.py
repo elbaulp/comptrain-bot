@@ -3,10 +3,15 @@ import bs4
 import requests
 import telegram
 import os
+import logging
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                     level=logging.INFO)
+
 
 # ------------------- E-mail list ------------------------
 token = os.environ['TOKEN']
-channel-id = os.environ['ME']
+me = os.environ['ME']
 # --------------------------------------------------------
 
 # Download page
@@ -26,6 +31,12 @@ date = '<strong>%s</strong>' % date.upper()
 workout = mydivs.findChildren('div', {'class': 'wpb_wrapper'})
 
 bot = telegram.Bot(token=token)
+
+
+
+#
+# updater = Updater(token=token)
+# dispatcher = updater.dispatcher
 
 open = [x for x in workout if 'Open' in x.text][0]
 qualifiers = [x for x in workout if 'Qualifier' in x.text][0]
@@ -58,6 +69,11 @@ def extract_wod(x):
 buff = '%s\n\n\n%s' % (date, extract_wod(x=qualifiers))
 buff = '%s\n\n%s' % (buff, extract_wod(open))
 
-bot.send_message(chat_id=channel-id,
+bot.send_message(chat_id=me,
                  text=buff,
                  parse_mode='html')
+
+logging.info('%s' % buff)
+
+# eu.pythonanywhere.com
+# https://wiki.python.org/moin/FreeHosts
