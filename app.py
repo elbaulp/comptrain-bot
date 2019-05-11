@@ -1,6 +1,7 @@
 #! python3
 import logging
 import os
+import datetime
 
 import bs4
 import requests
@@ -81,6 +82,7 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.info('Starting at %s' % datetime.datetime.now())
     schedule.every().day.at('05:00:00').do(main)
     while True:
         schedule.run_pending()
