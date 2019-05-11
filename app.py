@@ -1,7 +1,6 @@
 #! python3
 import logging
 import os
-import time
 
 import bs4
 import requests
@@ -82,9 +81,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # schedule.every().day.at("01:00").do(job,'It is 01:00')
-    # schedule.every().minute.at(':59').do(main)
-    schedule.every().hour.do(main)
+    schedule.every(5).seconds.do(main)
     while True:
         schedule.run_pending()
-        time.sleep(60)  # wait one minute
