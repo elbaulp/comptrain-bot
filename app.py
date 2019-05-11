@@ -84,8 +84,7 @@ def main():
 if __name__ == '__main__':
     # schedule.every().day.at("01:00").do(job,'It is 01:00')
     # schedule.every().minute.at(':59').do(main)
-    #schedule.every().hour.at(':00').do(main)
-    #while True:
-    #    schedule.run_pending()
-    #    time.sleep(60)  # wait one minute
-    pass
+    schedule.every().hour.do(main)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)  # wait one minute
