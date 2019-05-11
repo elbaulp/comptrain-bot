@@ -1,11 +1,12 @@
 #! python3
 import logging
 import os
+import time
 
 import bs4
 import requests
+import schedule
 import telegram
-import time
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -16,6 +17,7 @@ def main():
     token = os.environ['TOKEN']
     me = os.environ['ME']
     # --------------------------------------------------------
+
     # Download page
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36'
@@ -23,6 +25,7 @@ def main():
 
     getPage = requests.get('https://comptrain.co/free-programming/', headers=headers)
     getPage.raise_for_status()  # if error it will stop the program
+
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, 'html.parser')
     # mydivs = menu.find("div", {"class": "vc_gitem-zone-mini"})
@@ -36,9 +39,9 @@ def main():
     #
     # updater = Updater(token=token)
     # dispatcher = updater.dispatcher
+
     open = [x for x in workout if 'Open' in x.text][0]
     qualifiers = [x for x in workout if 'Qualifier' in x.text][0]
-
 
     def extract_wod(x):
         x.div.unwrap()
@@ -50,11 +53,16 @@ def main():
         # athletes.span.unwrap()
         athletes.name = 'strong'
         athletes.attrs = None
+
         buff += '%s\n\n' % athletes
 
         # Replace br with \n
         for br in x.find_all('br'):
+            logging.info('Removing br tag %s' % br)
             br.replace_with('\n')
+        for span in x.find_all('span'):
+            logging.info('Removing span tag %s' % span)
+            span.unwrap()
         for i in x.children:
             i = str(i)
             i = i.replace('<p>', '')
@@ -62,8 +70,8 @@ def main():
             buff += str(i)
         return buff
 
-
     buff = '%s\n\n\n%s' % (date, extract_wod(x=qualifiers))
+    buff = '%s\n%s\n' % (buff, '_' * 50)
     buff = '%s\n\n%s' % (buff, extract_wod(open))
 
     bot.send_message(chat_id=me,
@@ -72,7 +80,11 @@ def main():
 
     logging.info('%s' % buff)
 
+
 if __name__ == '__main__':
+    # schedule.every().day.at("01:00").do(job,'It is 01:00')
+    # schedule.every().minute.at(':59').do(main)
+    schedule.every().hour.at(':00').do(main)
     while True:
-        main()
-        time.sleep(3600)
+        schedule.run_pending()
+        time.sleep(60)  # wait one minute
