@@ -2,6 +2,7 @@
 import logging
 import os
 import datetime
+from time import sleep
 
 import bs4
 import requests
@@ -85,4 +86,6 @@ if __name__ == '__main__':
     logging.info('Starting at %s' % datetime.datetime.now())
     schedule.every().day.at('04:00:00').do(main)
     while True:
+        logging.info('Time %s' % datetime.datetime.now())
         schedule.run_pending()
+        sleep(10)
