@@ -1,7 +1,7 @@
 #! python3
+import datetime
 import logging
 import os
-import datetime
 from time import sleep
 
 import bs4
@@ -11,6 +11,42 @@ import telegram
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
+
+
+def clean_nested(x):
+    for i in x.em.find_all('strong'):
+        i.parent.unwrap()
+    for i in x.strong.find_all('em'):
+        i.parent.unwrap()
+    return x
+
+
+def extract_wod(x):
+    x.div.unwrap()
+    x.div.unwrap()
+    buff = ''
+    athletes = x.h2
+    athletes.string = athletes.string.upper()
+    athletes.extract()
+    # athletes.span.unwrap()
+    athletes.name = 'strong'
+    athletes.attrs = None
+
+    buff += '%s\n\n' % athletes
+
+    # Replace br with \n
+    for br in x.find_all('br'):
+        logging.info('Removing br tag %s' % br)
+        br.replace_with('\n')
+    for span in x.find_all('span'):
+        logging.info('Removing span tag %s' % span)
+        span.unwrap()
+    for i in x.children:
+        i = str(i)
+        i = i.replace('<p>', '')
+        i = i.replace('</p>', '\n\n')
+        buff += str(i)
+    return buff
 
 
 def main():
@@ -37,43 +73,14 @@ def main():
 
     bot = telegram.Bot(token=token)
 
-    #
-    # updater = Updater(token=token)
-    # dispatcher = updater.dispatcher
-
-    open = [x for x in workout if 'Open' in x.text][0]
-    qualifiers = [x for x in workout if 'Qualifier' in x.text][0]
-
-    def extract_wod(x):
-        x.div.unwrap()
-        x.div.unwrap()
-        buff = ''
-        athletes = x.h2
-        athletes.string = athletes.string.upper()
-        athletes.extract()
-        # athletes.span.unwrap()
-        athletes.name = 'strong'
-        athletes.attrs = None
-
-        buff += '%s\n\n' % athletes
-
-        # Replace br with \n
-        for br in x.find_all('br'):
-            logging.info('Removing br tag %s' % br)
-            br.replace_with('\n')
-        for span in x.find_all('span'):
-            logging.info('Removing span tag %s' % span)
-            span.unwrap()
-        for i in x.children:
-            i = str(i)
-            i = i.replace('<p>', '')
-            i = i.replace('</p>', '\n\n')
-            buff += str(i)
-        return buff
+    open = [clean_nested(x) for x in workout if 'Open' in x.text][0]
+    qualifiers = [clean_nested(x) for x in workout if 'Qualifier' in x.text][0]
 
     buff = '%s\n\n\n%s' % (date, extract_wod(x=qualifiers))
     buff = '%s\n%s\n' % (buff, '_' * 50)
     buff = '%s\n\n%s' % (buff, extract_wod(open))
+
+    logging.info('Sending %s\n\n' % buff)
 
     bot.send_message(chat_id=me,
                      text=buff,
@@ -88,4 +95,4 @@ if __name__ == '__main__':
     while True:
         logging.info('Time %s' % datetime.datetime.now())
         schedule.run_pending()
-        sleep(10)
+        sleep(30)
