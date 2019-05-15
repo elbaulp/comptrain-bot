@@ -1,9 +1,12 @@
 #! python3
+import datetime
 import logging
 import os
+from time import sleep
 
 import bs4
 import requests
+import schedule
 import telegram
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -21,14 +24,14 @@ def clean_nested(x):
 
 
 def clean_html(x):
+    x = clean_nested(x)
     buff = ''
     if x.name == 'h2':
         x.string = x.string.upper()
         x.extract()
         x.name = 'strong'
         x.attrs = None
-        # buff = '%s\n\n\n%s\n\n\n' % (buff, '_' * 50)
-        buff += '%s' % x
+        buff += '\n\n\n%s\n\n\n' % x
     else:
         # Replace br with \n
         for br in x.find_all('br'):
@@ -37,15 +40,13 @@ def clean_html(x):
         for span in x.find_all('span'):
             logging.info('Removing span tag %s' % span)
             span.unwrap()
-        for i in x.children:
-            i = str(i)
-            i = i.replace('<p>', '')
-            i = i.replace('</p>', '\n\n')
-            i = i.replace('</strong>', '</strong>\n')
-            i = i.replace('</em>', '</em>\n')
-            i = i.replace('<strong>', '\n<strong>')
-            i = i.replace('<em>', '\n<em>')
-            buff += str(i)
+        if x.name == 'p':
+            x.name = 'br'
+            buff += str(x)
+
+    buff = buff.replace('<br>', '')
+    buff = buff.replace('</br>', '\n\n')
+
     return buff
 
 
@@ -65,14 +66,13 @@ def main():
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, 'html.parser')
-    mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=10)[3]
+    mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=10)[1]
     date = mydivs.h4.get_text()  # .find('h4').getText()
     date = '<strong>%s</strong>' % date.upper()
 
     a = mydivs.find_all(['p', 'h2'])[2:]
     buff = '%s\n\n' % date
     for item in a:
-        item = clean_nested(item)
         buff = '%s%s' % (buff, clean_html(item))
 
     bot = telegram.Bot(token=token)
@@ -87,10 +87,9 @@ def main():
 
 
 if __name__ == '__main__':
-    # logging.info('Starting at %s' % datetime.datetime.now())
-    # schedule.every().day.at('03:00:00').do(main)
-    # while True:
-    #     logging.info('Time %s' % datetime.datetime.now())
-    #     schedule.run_pending()
-    #     sleep(30)
-    main()
+    logging.info('Starting at %s' % datetime.datetime.now())
+    schedule.every().day.at('03:00:00').do(main)
+    while True:
+        logging.info('Time %s' % datetime.datetime.now())
+        schedule.run_pending()
+        sleep(30)
