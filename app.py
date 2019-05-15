@@ -26,13 +26,14 @@ def extract_wod(x):
     x.div.unwrap()
     buff = ''
     athletes = x.h2
-    athletes.string = athletes.string.upper()
-    athletes.extract()
-    # athletes.span.unwrap()
-    athletes.name = 'strong'
-    athletes.attrs = None
+    if athletes:
+        athletes.string = athletes.string.upper()
+        athletes.extract()
+        # athletes.span.unwrap()
+        athletes.name = 'strong'
+        athletes.attrs = None
 
-    buff += '%s\n\n' % athletes
+        buff += '%s\n\n' % athletes
 
     # Replace br with \n
     for br in x.find_all('br'):
@@ -65,20 +66,22 @@ def main():
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, 'html.parser')
-    # mydivs = menu.find("div", {"class": "vc_gitem-zone-mini"})
     mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=10)[1]
     date = mydivs.h4.get_text()  # .find('h4').getText()
     date = '<strong>%s</strong>' % date.upper()
-    workout = mydivs.findChildren('div', {'class': 'wpb_wrapper'})
+    workout = mydivs.findChildren('div', {'class': 'wpb_wrapper'})[2:]
+
+    open = clean_nested(workout[2])
+    qualifiers = clean_nested(workout[0])
 
     bot = telegram.Bot(token=token)
 
-    open = [clean_nested(x) for x in workout if 'Open' in x.text][0]
-    qualifiers = [clean_nested(x) for x in workout if 'Qualifier' in x.text][0]
+    # open = [clean_nested(x) for x in workout if 'Open' in x.text][0]
+    # qualifiers = [clean_nested(x) for x in workout if 'Qualifier' in x.text][0]
 
     buff = '%s\n\n\n%s' % (date, extract_wod(x=qualifiers))
     buff = '%s\n%s\n' % (buff, '_' * 50)
-    buff = '%s\n\n%s' % (buff, extract_wod(open))
+    buff = '%s\n\n\n%s' % (buff, extract_wod(x=open))
 
     logging.info('Sending %s\n\n' % buff)
 
@@ -91,7 +94,7 @@ def main():
 
 if __name__ == '__main__':
     logging.info('Starting at %s' % datetime.datetime.now())
-    schedule.every().day.at('04:00:00').do(main)
+    schedule.every().day.at('03:00:00').do(main)
     while True:
         logging.info('Time %s' % datetime.datetime.now())
         schedule.run_pending()
