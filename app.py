@@ -1,12 +1,9 @@
 #! python3
-import datetime
 import logging
 import os
-from time import sleep
 
 import bs4
 import requests
-import schedule
 import telegram
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -14,39 +11,41 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 def clean_nested(x):
-    for i in x.em.find_all('strong'):
-        i.parent.unwrap()
-    for i in x.strong.find_all('em'):
-        i.parent.unwrap()
+    if x.em:
+        for i in x.em.find_all('strong'):
+            i.parent.unwrap()
+    if x.strong:
+        for i in x.strong.find_all('em'):
+            i.parent.unwrap()
     return x
 
 
-def extract_wod(x):
-    x.div.unwrap()
-    x.div.unwrap()
+def clean_html(x):
     buff = ''
-    athletes = x.h2
-    if athletes:
-        athletes.string = athletes.string.upper()
-        athletes.extract()
-        # athletes.span.unwrap()
-        athletes.name = 'strong'
-        athletes.attrs = None
-
-        buff += '%s\n\n' % athletes
-
-    # Replace br with \n
-    for br in x.find_all('br'):
-        logging.info('Removing br tag %s' % br)
-        br.replace_with('\n')
-    for span in x.find_all('span'):
-        logging.info('Removing span tag %s' % span)
-        span.unwrap()
-    for i in x.children:
-        i = str(i)
-        i = i.replace('<p>', '')
-        i = i.replace('</p>', '\n\n')
-        buff += str(i)
+    if x.name == 'h2':
+        x.string = x.string.upper()
+        x.extract()
+        x.name = 'strong'
+        x.attrs = None
+        # buff = '%s\n\n\n%s\n\n\n' % (buff, '_' * 50)
+        buff += '%s' % x
+    else:
+        # Replace br with \n
+        for br in x.find_all('br'):
+            logging.info('Removing br tag %s' % br)
+            br.replace_with('\n')
+        for span in x.find_all('span'):
+            logging.info('Removing span tag %s' % span)
+            span.unwrap()
+        for i in x.children:
+            i = str(i)
+            i = i.replace('<p>', '')
+            i = i.replace('</p>', '\n\n')
+            i = i.replace('</strong>', '</strong>\n')
+            i = i.replace('</em>', '</em>\n')
+            i = i.replace('<strong>', '\n<strong>')
+            i = i.replace('<em>', '\n<em>')
+            buff += str(i)
     return buff
 
 
@@ -66,22 +65,17 @@ def main():
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, 'html.parser')
-    mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=10)[1]
+    mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=10)[3]
     date = mydivs.h4.get_text()  # .find('h4').getText()
     date = '<strong>%s</strong>' % date.upper()
-    workout = mydivs.findChildren('div', {'class': 'wpb_wrapper'})[2:]
 
-    open = clean_nested(workout[2])
-    qualifiers = clean_nested(workout[0])
+    a = mydivs.find_all(['p', 'h2'])[2:]
+    buff = '%s\n\n' % date
+    for item in a:
+        item = clean_nested(item)
+        buff = '%s%s' % (buff, clean_html(item))
 
     bot = telegram.Bot(token=token)
-
-    # open = [clean_nested(x) for x in workout if 'Open' in x.text][0]
-    # qualifiers = [clean_nested(x) for x in workout if 'Qualifier' in x.text][0]
-
-    buff = '%s\n\n\n%s' % (date, extract_wod(x=qualifiers))
-    buff = '%s\n%s\n' % (buff, '_' * 50)
-    buff = '%s\n\n\n%s' % (buff, extract_wod(x=open))
 
     logging.info('Sending %s\n\n' % buff)
 
@@ -93,9 +87,10 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.info('Starting at %s' % datetime.datetime.now())
-    schedule.every().day.at('03:00:00').do(main)
-    while True:
-        logging.info('Time %s' % datetime.datetime.now())
-        schedule.run_pending()
-        sleep(30)
+    # logging.info('Starting at %s' % datetime.datetime.now())
+    # schedule.every().day.at('03:00:00').do(main)
+    # while True:
+    #     logging.info('Time %s' % datetime.datetime.now())
+    #     schedule.run_pending()
+    #     sleep(30)
+    main()
