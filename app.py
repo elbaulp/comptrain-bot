@@ -73,7 +73,8 @@ def main():
     a = mydivs.find_all(['p', 'h2'])[2:]
     buff = '%s\n\n' % date
     for item in a:
-        buff = '%s%s' % (buff, clean_html(item))
+        if not item.has_attr('style') or item.name == 'h2':
+            buff = '%s%s' % (buff, clean_html(item))
 
     bot = telegram.Bot(token=token)
 
@@ -90,6 +91,6 @@ if __name__ == '__main__':
     logging.info('Starting at %s' % datetime.datetime.now())
     schedule.every().day.at('03:00:00').do(main)
     while True:
-        logging.info('Time %s' % datetime.datetime.now())
+        # logging.info('Time %s' % datetime.datetime.now())
         schedule.run_pending()
         sleep(30)
