@@ -66,7 +66,7 @@ def main():
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, 'html.parser')
-    mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=10)[1]
+    mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=2)[1]
     date = mydivs.h4.get_text()  # .find('h4').getText()
     date = '<strong>%s</strong>' % date.upper()
 
