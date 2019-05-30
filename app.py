@@ -31,7 +31,7 @@ def clean_html(x):
         x.extract()
         x.name = 'strong'
         x.attrs = None
-        buff += '\n\n\n%s\n\n\n' % x
+        buff += '\n\n{}\n\n'.format(x)
     else:
         # Replace br with \n
         for br in x.find_all('br'):
@@ -68,17 +68,17 @@ def main():
     soup = bs4.BeautifulSoup(getPage.text, 'html.parser')
     mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=2)[1]
     date = mydivs.h4.get_text()  # .find('h4').getText()
-    date = '<strong>%s</strong>' % date.upper()
+    date = '<strong>{}</strong>'.format(date.upper())
 
     a = mydivs.find_all(['p', 'h2'])[2:]
-    buff = '%s\n\n' % date
+    buff = '{}'.format(date)
     for item in a:
         if not item.has_attr('style') or item.name == 'h2':
             buff = '%s%s' % (buff, clean_html(item))
 
     bot = telegram.Bot(token=token)
 
-    logging.info('Sending %s\n\n' % buff)
+    logging.info('Sending {}\n\n'.format(buff))
 
     bot.send_message(chat_id=me,
                      text=buff,
