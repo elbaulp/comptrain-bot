@@ -20,29 +20,29 @@ def clean_nested(x):
     if x.strong:
         for i in x.strong.find_all('em'):
             i.parent.unwrap()
-    return x
 
+    return x
 
 def clean_html(x):
     x = clean_nested(x)
     buff = ''
+    # Replace br with \n
+    for br in x.find_all('br'):
+        logging.info('Removing br tag %s' % br)
+        # br.replace_with('\n')
+        br.extract()
+    for span in x.find_all('span'):
+        logging.info('Removing span tag %s' % span)
+        span.unwrap()
+    if x.name == 'p':
+        x.name = 'br'
+        buff += str(x)
     if x.name == 'h2':
+        # x = [item.strip() for item in x.contents if len(item.strip()) > 0][0] if len(x) > 1 else x
         x.string = x.string.upper()
-        x.extract()
         x.name = 'strong'
         x.attrs = None
         buff += '\n\n{}\n\n'.format(x)
-    else:
-        # Replace br with \n
-        for br in x.find_all('br'):
-            logging.info('Removing br tag %s' % br)
-            br.replace_with('\n')
-        for span in x.find_all('span'):
-            logging.info('Removing span tag %s' % span)
-            span.unwrap()
-        if x.name == 'p':
-            x.name = 'br'
-            buff += str(x)
 
     buff = buff.replace('<br>', '')
     buff = buff.replace('</br>', '\n\n')
