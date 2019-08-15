@@ -41,10 +41,9 @@ def clean_html(x):
         x.name = "br"
         buff += str(x)
     if x.name == "h2":
-        # x = [item.strip() for item in x.contents if len(item.strip()) > 0][0] if len(x) > 1 else x
         x.string = x.string.upper()
         x.name = "strong"
-        x.attrs = None
+        x.attrs = {}
         buff += "\n\n{}\n\n".format(x)
 
     buff = buff.replace("<br>", "")
