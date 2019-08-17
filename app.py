@@ -28,17 +28,18 @@ def clean_nested(x):
 
 def clean_html(x):
     x = clean_nested(x)
+
     buff = ""
     # Replace br with \n
     for br in x.find_all("br"):
         logging.info("Removing br tag %s" % br)
-        # br.replace_with('\n')
         br.extract()
     for span in x.find_all("span"):
         logging.info("Removing span tag %s" % span)
         span.unwrap()
     if x.name == "p":
         x.name = "br"
+        x.attrs = {}
         buff += str(x)
     if x.name == "h2":
         x.string = x.string.upper()
@@ -70,7 +71,7 @@ def main():
     soup = bs4.BeautifulSoup(getPage.text, "html.parser")
     mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=2)[1]
     date = mydivs.h4.get_text()  # .find('h4').getText()
-    date = "<strong>{}</strong>".format(date.upper())
+    date = "<strong>{}</strong>\n\n".format(date.upper())
 
     a = mydivs.find_all(["p", "h2"])[2:]
     buff = "{}".format(date)
@@ -85,7 +86,6 @@ def main():
     bot.send_message(chat_id=me, text=buff, parse_mode="html")
 
     logging.info("%s" % buff)
-
 
 if __name__ == "__main__":
     logging.info("Starting at %s" % datetime.datetime.now())
