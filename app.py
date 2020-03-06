@@ -64,12 +64,12 @@ def main():
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36"
     }
 
-    getPage = requests.get("https://comptrain.co/free-programming/", headers=headers)
+    getPage = requests.get("https://comptrain.co/wod/", headers=headers)
     getPage.raise_for_status()  # if error it will stop the program
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, "html.parser")
-    mydivs = soup.findAll("div", {"class": "vc_gitem-zone-mini"}, limit=2)[1]
+    mydivs = soup.findAll("div", {"class": "container wod-info"}, limit=2)[1]
     date = mydivs.h4.get_text()  # .find('h4').getText()
     date = "<strong>{}</strong>\n\n".format(date.upper())
 
