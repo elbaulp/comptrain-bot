@@ -9,7 +9,6 @@ import requests
 import telegram
 import schedule
 
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -30,6 +29,8 @@ def clean_html(x):
     x = clean_nested(x)
 
     buff = ""
+    for element in x(text=lambda text: isinstance(text, bs4.Comment)):
+        element.extract()
     # Replace br with \n
     for br in x.find_all("br"):
         logging.info("Removing br tag %s" % br)
@@ -69,8 +70,8 @@ def main():
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, "html.parser")
-    mydivs = soup.findAll("div", {"class": "container wod-info"}, limit=2)[1]
-    date = mydivs.h4.get_text()  # .find('h4').getText()
+    mydivs = soup.findAll("div", {"class": "wod-info"}, limit=2)[1]
+    date = mydivs.h2.get_text()  # .find('h4').getText()
     date = "<strong>{}</strong>\n\n".format(date.upper())
 
     a = mydivs.find_all(["p", "h2"])[2:]
@@ -79,6 +80,7 @@ def main():
         if not item.has_attr("style") or item.name == "h2":
             buff = "%s%s" % (buff, clean_html(item))
 
+    logging.error(buff)
     bot = telegram.Bot(token=token)
 
     logging.info("Sending {}\n\n".format(buff))
