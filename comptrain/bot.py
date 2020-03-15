@@ -1,4 +1,4 @@
-#! python3
+#! /usr/bin/env python
 import datetime
 import logging
 import os
@@ -13,7 +13,6 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-
 def clean_nested(x):
     if x.em:
         for i in x.em.find_all("strong"):
@@ -23,7 +22,6 @@ def clean_nested(x):
             i.parent.unwrap()
 
     return x
-
 
 def clean_html(x):
     x = clean_nested(x)
@@ -46,7 +44,7 @@ def clean_html(x):
         x.string = x.string.upper()
         x.name = "strong"
         x.attrs = {}
-        buff += "\n\n{}\n\n".format(x)
+        buff += f"\n\n{x}\n\n"
 
     buff = buff.replace("<br>", "")
     buff = buff.replace("</br>", "\n\n")
@@ -70,30 +68,28 @@ def main():
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, "html.parser")
-    mydivs = soup.findAll("div", {"class": "wod-info"}, limit=2)[1]
-    date = mydivs.h2.get_text()  # .find('h4').getText()
-    date = "<strong>{}</strong>\n\n".format(date.upper())
+    mydivs = soup.findAll("div", {"class": "wod-info"}, limit=1)[0]
+    date = soup.findAll("div", {"class":"wod-date"}, limit=1)[0].h5.get_text()
+    date = f"<strong>{date.upper()}</strong>\n\n"
 
-    a = mydivs.find_all(["p", "h2"])[2:]
-    buff = "{}".format(date)
+    a = mydivs.find_all(["p", "h2"])
+
+    buff = f"{date}"
     for item in a:
         if not item.has_attr("style") or item.name == "h2":
+            logging.error(f"inside: {item}")
             buff = "%s%s" % (buff, clean_html(item))
 
-    logging.error(buff)
     bot = telegram.Bot(token=token)
-
-    logging.info("Sending {}\n\n".format(buff))
 
     bot.send_message(chat_id=me, text=buff, parse_mode="html")
 
-    logging.info("%s" % buff)
+    logging.info(f"Sending msg:\n{buff}")
 
 if __name__ == "__main__":
-    main()
-    # logging.info("Starting at %s" % datetime.datetime.now())
-    # schedule.every().day.at("03:00:00").do(main)
-    # while True:
-        # logging.info('Time %s' % datetime.datetime.now())
-        # schedule.run_pending()
-        # sleep(30)
+    logging.info("Starting at %s" % datetime.datetime.now())
+    schedule.every().day.at("03:00:00").do(main)
+    while True:
+        logging.info('Time %s' % datetime.datetime.now())
+        schedule.run_pending()
+        sleep(30)
