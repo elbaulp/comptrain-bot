@@ -1,7 +1,9 @@
 FROM python:3
 
-ADD app.py /
+RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+COPY poetry.lock pyproject.toml /
+RUN poetry config virtualenvs.create false \
+    && poetry install
 
-RUN pip install python-telegram-bot bs4 requests schedule
-
-CMD [ "python", "./app.py" ]
+COPY . /
+RUN poetry run my-script
