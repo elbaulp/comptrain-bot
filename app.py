@@ -90,9 +90,10 @@ def main():
     logging.info("%s" % buff)
 
 if __name__ == "__main__":
-    logging.info("Starting at %s" % datetime.datetime.now())
-    schedule.every().day.at("03:00:00").do(main)
-    while True:
+    main()
+    # logging.info("Starting at %s" % datetime.datetime.now())
+    # schedule.every().day.at("03:00:00").do(main)
+    # while True:
         # logging.info('Time %s' % datetime.datetime.now())
-        schedule.run_pending()
-        sleep(30)
+        # schedule.run_pending()
+        # sleep(30)
