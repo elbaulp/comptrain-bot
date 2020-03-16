@@ -13,6 +13,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+
 def clean_nested(x):
     if x.em:
         for i in x.em.find_all("strong"):
@@ -22,6 +23,7 @@ def clean_nested(x):
             i.parent.unwrap()
 
     return x
+
 
 def clean_html(x):
     x = clean_nested(x)
@@ -69,7 +71,7 @@ def main():
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, "html.parser")
     mydivs = soup.findAll("div", {"class": "wod-info"}, limit=1)[0]
-    date = soup.findAll("div", {"class":"wod-date"}, limit=1)[0].h5.get_text()
+    date = soup.findAll("div", {"class": "wod-date"}, limit=1)[0].h5.get_text()
     date = f"<strong>{date.upper()}</strong>\n\n"
 
     a = mydivs.find_all(["p", "h2"])
@@ -82,14 +84,17 @@ def main():
 
     bot = telegram.Bot(token=token)
 
-    bot.send_message(chat_id=me, text=buff, parse_mode="html")
+    bot.send_message(
+        chat_id=me, text=buff, parse_mode="html", disable_notification=True
+    )
 
     logging.info(f"Sending msg:\n{buff}")
+
 
 if __name__ == "__main__":
     logging.info("Starting at %s" % datetime.datetime.now())
     schedule.every().day.at("03:00:00").do(main)
     while True:
-        logging.info('Time %s' % datetime.datetime.now())
+        logging.info("Time %s" % datetime.datetime.now())
         schedule.run_pending()
         sleep(30)
