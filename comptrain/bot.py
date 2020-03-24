@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+""""""
 import datetime
 import logging
 import os
@@ -6,15 +6,16 @@ from time import sleep
 
 import bs4
 import requests
-import telegram
 import schedule
+import telegram
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.ERROR
 )
 
 
 def clean_nested(x):
+    """"""
     if x.em:
         for i in x.em.find_all("strong"):
             i.parent.unwrap()
@@ -33,10 +34,10 @@ def clean_html(x):
         element.extract()
     # Replace br with \n
     for br in x.find_all("br"):
-        logging.info("Removing br tag %s" % br)
+        logging.debug("Removing br tag %s" % br)
         br.extract()
     for span in x.find_all("span"):
-        logging.info("Removing span tag %s" % span)
+        logging.debug("Removing span tag %s" % span)
         span.unwrap()
     if x.name == "p":
         x.name = "br"
@@ -54,18 +55,8 @@ def clean_html(x):
     return buff
 
 
-def main():
-    # ------------------- E-mail list ------------------------
-    token = os.environ["TOKEN"]
-    me = os.environ["ME"]
-    # --------------------------------------------------------
-
-    # Download page
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36"
-    }
-
-    getPage = requests.get("https://comptrain.co/wod/", headers=headers)
+def parse_page(url: str, headers: dict) -> str:
+    getPage = requests.get(url, headers=headers)
     getPage.raise_for_status()  # if error it will stop the program
 
     # Parse text for foods
@@ -79,16 +70,34 @@ def main():
     buff = f"{date}"
     for item in a:
         if not item.has_attr("style") or item.name == "h2":
-            logging.error(f"inside: {item}")
             buff = "%s%s" % (buff, clean_html(item))
+
+    return buff
+
+
+def send_message(*args: str):
+    token = os.environ["TOKEN"]
+    me = os.environ["ME"]
 
     bot = telegram.Bot(token=token)
 
-    bot.send_message(
-        chat_id=me, text=buff, parse_mode="html", disable_notification=True
-    )
+    for msg in args:
+        bot.send_message(
+            chat_id=me, text=msg, parse_mode="html", disable_notification=True
+        )
+        logging.info(f"Sending msg:\n{msg}\n\n\n")
 
-    logging.info(f"Sending msg:\n{buff}")
+
+def main():
+
+    # Download page
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36"
+    }
+
+    wod = parse_page("https://comptrain.co/wod/", headers)
+    home_wod = parse_page("https://comptrain.co/home-gym/", headers)
+    send_message(wod, home_wod)
 
 
 if __name__ == "__main__":
