@@ -4,8 +4,9 @@ import logging
 import os
 from time import sleep
 
-import bs4
 import requests
+
+import bs4
 import schedule
 import telegram
 
@@ -96,8 +97,8 @@ def main():
     }
 
     wod = parse_page("https://comptrain.co/wod/", headers)
-    home_wod = parse_page("https://comptrain.co/home-gym/", headers)
-    send_message(wod, home_wod)
+    # home_wod = parse_page("https://comptrain.co/home-gym/", headers)
+    send_message(wod)
 
 
 if __name__ == "__main__":
