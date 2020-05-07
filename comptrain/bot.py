@@ -62,7 +62,7 @@ def parse_page(url: str, headers: dict) -> str:
 
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, "html.parser")
-    mydivs = soup.findAll("div", {"class": "wod-info"}, limit=1)[0]
+    mydivs = soup.findAll("div", {"class": "wod-wrap"}, limit=1)[0]
     date = soup.findAll("div", {"class": "wod-date"}, limit=1)[0].h5.get_text()
     date = f"<strong>{date.upper()}</strong>\n\n"
 
@@ -97,8 +97,8 @@ def main():
     }
 
     wod = parse_page("https://comptrain.co/wod/", headers)
-    # home_wod = parse_page("https://comptrain.co/home-gym/", headers)
-    send_message(wod)
+    home_wod = parse_page("https://comptrain.co/home-gym/", headers)
+    send_message(wod, home_wod)
 
 
 if __name__ == "__main__":
