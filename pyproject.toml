@@ -16,6 +16,4 @@ pytest = "^4.6"
 black = "^19.10b0"
 
 [tool.poetry.scripts]
-my-script = "comptrain.bot:main"
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+comptrain = "comptrain.bot:main"
