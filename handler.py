@@ -1,19 +1,14 @@
-""""""
-
 import logging
 import os
 
-
+import json
 import requests
-
 import bs4
-
 import telegram
 
-import json
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.ERROR
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
 
@@ -85,7 +80,9 @@ def send_message(*args: str):
     bot = telegram.Bot(token=token)
 
     for msg in args:
-        bot.send_message(chat_id=me, text=msg, parse_mode="html", disable_notification=True)
+        bot.send_message(
+            chat_id=me, text=msg, parse_mode="html", disable_notification=True
+        )
         logging.info(f"Sending msg:\n{msg}\n\n\n")
 
 
@@ -100,12 +97,9 @@ def main(event, context):
     home_wod = parse_page("https://comptrain.co/home-gym/", headers)
     send_message(wod, home_wod)
 
+    body = {
+        "message": "Go Serverless v1.0! Your function executed successfully!",
+        "input": event,
+    }
 
-
-# if __name__ == "__main__":
-#     logging.info("Starting at %s" % datetime.datetime.now())
-#     schedule.every().day.at("03:00:00").do(main)
-#     while True:
-#         logging.info("Time %s" % datetime.datetime.now())
-#         schedule.run_pending()
-#         sleep(30)
+    return {"statusCode": 200, "body": json.dumps(body)}

@@ -1,0 +1,15 @@
+service: comptrain-bot
+# app and org for use with dashboard.serverless.com
+#app: myapp
+#org: alejandroalcalde
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: eu-central-1
+
+functions:
+  comptrain:
+    handler: handler.main
+    events:
+      - schedule: cron(0 4 * * ? *)

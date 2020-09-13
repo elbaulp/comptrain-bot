@@ -9,11 +9,11 @@ python = "^3.7"
 python-telegram-bot = "^12.4.2"
 beautifulsoup4 = "^4.8.2"
 requests = "^2.23.0"
-schedule = "^0.6.0"
+
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
 black = "^19.10b0"
 
-[tool.poetry.scripts]
-comptrain = "comptrain.bot:main"
+# [tool.poetry.scripts]
+# comptrain = "comptrain.bot:main"
