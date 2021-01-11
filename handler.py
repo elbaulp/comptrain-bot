@@ -67,7 +67,7 @@ def parse_page(url: str, headers: dict) -> str:
     buff = f"{date}"
     for item in a:
         if not item.has_attr("style") or item.name == "h2":
-            buff = "%s%s" % (buff, clean_html(item))
+            buff = "%s%s" % (buff, item.text)
 
     return buff
 
