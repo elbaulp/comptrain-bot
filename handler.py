@@ -59,15 +59,15 @@ def parse_page(url: str, headers: dict) -> str:
     # Parse text for foods
     soup = bs4.BeautifulSoup(getPage.text, "html.parser")
     mydivs = soup.findAll("div", {"id": "wod"}, limit=1)[0]
-    date = soup.findAll("div", {"id": "wod"}, limit=1)[0].h5.get_text()
-    date = f"<strong>{date.upper()}</strong>\n\n"
+    date = soup.findAll("div", {"id": "wod"}, limit=1)[0].h5.get_text("\n\n\n", True)
+    date = f"<strong>{date.upper()}</strong>"
 
     a = mydivs.find_all(["p", "h2"])
 
     buff = f"{date}"
     for item in a:
         if not item.has_attr("style") or item.name == "h2":
-            buff = "%s%s" % (buff, item.text)
+            buff = "%s%s" % (buff, item.getText("\n", True))
 
     return buff
 
