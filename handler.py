@@ -64,10 +64,10 @@ def parse_page(url: str, headers: dict) -> str:
 
     a = mydivs.find_all(["p", "h2"])
 
-    buff = f"{date}"
+    buff = f"{date}\n\n"
     for item in a:
         if not item.has_attr("style") or item.name == "h2":
-            buff = "%s%s" % (buff, item.getText("\n", True))
+            buff = "%s%s\n\n" % (buff, item.getText("\n", True))
 
     return buff
 
